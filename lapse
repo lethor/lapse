@@ -1,0 +1,126 @@
+#!/usr/bin/env bash
+#
+# lapse - bash wrapper around FFMPEG
+#
+# Copyright 2014 Ben Thornton
+#
+# Released under the GPLv2.
+
+# Combine still photos into a video.
+function stills2vid {
+    if [ $# -lt 2 ]; then
+        echo "usage: $0 <input-dir> <output-dir> <quality>"
+        return
+    fi
+    # 1st argument is the source directory (e.g. path/to/DCIM) for the stills.
+    if [ ! -d "$1" ]; then
+        echo "$1 is not a directory"
+        return
+    fi
+    if [ ! -r "$1" ]; then
+        echo "$1 is not readable"
+        return
+    fi
+    # 2nd argument is the target path for the video file.
+    if [ -e "$2" ]; then
+        echo "$2 already exists: skipping"
+        return
+    fi
+    # 3rd argument is the quality for the encoder to use:
+    # 0 : ProRes422 (Proxy)
+    # 1 : ProRes422 (LT)
+    # 2 : ProRes422 (Normal)
+    # 3 : ProRes422 (HQ)
+    # See: http://transcoding.wordpress.com/2012/01/29/prores-ffmpeg/
+    if [ "$3" -lt 0 ]; then
+        echo "Quality cannot be negative."
+        return
+    fi
+    if [ "$3" -gt 3 ]; then
+        echo "Quality cannot be above 3."
+        return
+    fi
+    # Input looks okay.  Let's render.
+    echo "Processing $1/G*.JPG"
+    ffmpeg -f image2 -pattern_type glob -i "$1/G*.JPG" -r 29.97 -q:v "$3" -vcodec prores -profile:v 0 -an "$2"
+    # Quit if there's an error, of if the user insisted by pressing control c.
+    error=$?
+    if [ "$error" -ne 0 ]; then
+        echo "fatal: FFMPEG halted"
+        exit $error
+    fi
+}
+
+if [ $# -lt 2 ]; then
+    echo "usage: $0 <input-dir> <output-dir>"
+    exit 1
+fi
+
+# Where can we find the input?
+source="$1"
+if [ ! -d "$source" ]; then
+    echo "fatal: source is not a directory: $source"
+    exit 2
+fi
+if [ ! -r "$source" ]; then
+    echo "fatal: cannot read from source: $source"
+    exit 3
+fi
+echo "Source directory is: $source"
+
+# Where should we save the output?
+path=$(ls -d "$source" | head -n1)
+file=$(ls "$path" | head -n1)
+date=$(stat -f "%Sm" -t "%Y-%m-%d" "$path/$file")
+target="$2"
+if [ ! -d "$2" ]; then
+    echo "Target directory does not exist."
+    mkdir -p "$2"
+    if [ $? -ne 0 ]; then
+        echo "fatal: cannot create target directory: $2"
+        exit 4
+    fi
+fi
+target="$target/$date"
+if [ ! -d "$2" ]; then
+    mkdir -p "$2"
+    if [ $? -ne 0 ]; then
+        echo "fatal: cannot create target directory: $2"
+        exit 5
+    fi
+fi
+if [ ! -w "$2" ]; then
+    echo "fatal: cannot write to target: $2"
+    exit 6
+fi
+echo "Target directory is: $2"
+
+# Render each directory of photos into a video.
+for dir in $(ls "$source"); do
+    quality=2
+    if [ -n "$3" ]; then
+        quality="$3"
+    fi
+    stills2vid "$source/$dir" "$2/$dir.mov" "$quality"
+done
+
+# Concatenate the video files into one.
+final="$final/$date.mov"
+if [ -e "$final" ]; then
+    echo "fatal: $final already exists"
+    exit 7
+fi
+echo "Concatenating files into: $final"
+list="/tmp/lapse.tmp"
+echo "" > "$list.unsorted"
+for v in $(find "$2" -name '*.mov'); do
+    echo "file '$v'" >> "$list.unsorted"
+done
+sort "$list.unsorted" > "$list"
+rm "$list.unsorted"
+wc -l "$list"
+head "$list"
+echo "[...]"
+tail "$list"
+ffmpeg -f concat -i "$list" -c copy "$final"
+rm "$list"

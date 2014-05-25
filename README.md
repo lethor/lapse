@@ -32,7 +32,7 @@ about 2/3 the size of the still photos.  If you have 64 GB of 5 megapixel
 stills, you will need perhaps 90 GB for the video files.  (You can delete half
 of this once the script has finished running.)
 
-That's not even the at the highest quality level, which you can adjust.  You can
+That's not even at the highest quality level, which you can adjust.  You can
 choose a value from 0-3 inclusive.  The default is 2.  You can adjust it like
 so:
 
@@ -63,7 +63,7 @@ with Homebrew, enter this in the Terminal app:
 brew install ffmpeg --devel
 ~~~
 
-The "--devel" flag get you the latest version, which is faster.  More info here:
+The "--devel" flag gets you the latest version, which is faster.  More info here:
 https://trac.ffmpeg.org/wiki/CompilationGuide/MacOSX
 
 ### Legal

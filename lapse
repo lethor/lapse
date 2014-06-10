@@ -56,7 +56,14 @@ function stills2vid {
 }
 
 if [ $# -lt 2 ]; then
-    echo "usage: $0 <input-dir> <output-dir>" >&2
+    echo "usage: $0 <input-dir> <output-dir> [<quality>]" >&2
+    echo "<quality> must be an integer from 0-3 inclusive." >&2
+    echo "[0] ProRes 422 Proxy 30% of [2]" >&2
+    echo "[1] ProRes 422 LT    70% of [2]" >&2
+    echo "[2] ProRes 422 (Default)" >&2
+    echo "[3] ProRes 422 HQ (Best quality)" >&2
+    echo "example 1: $0 /path/to/DCIM ~/Movies"
+    echo "example 2: $0 /path/to/DCIM ~/Movies 3"
     exit 1
 fi
 

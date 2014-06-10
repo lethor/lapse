@@ -8,7 +8,7 @@
 
 # Combine still photos into a video.
 function stills2vid {
-    if [ $# -lt 2 ]; then
+    if [ $# -lt 3 ]; then
         echo "usage: $0 <input-dir> <output-dir> <quality>"
         return
     fi

@@ -9,21 +9,21 @@
 # Combine still photos into a video.
 function stills2vid {
     if [ $# -lt 3 ]; then
-        echo "usage: $0 <input-dir> <output-dir> <quality>"
+        echo "usage: $0 <input-dir> <output-dir> <quality>" >&2
         return
     fi
     # 1st argument is the source directory (e.g. path/to/DCIM) for the stills.
     if [ ! -d "$1" ]; then
-        echo "$1 is not a directory"
+        echo "$1 is not a directory" >&2
         return
     fi
     if [ ! -r "$1" ]; then
-        echo "$1 is not readable"
+        echo "$1 is not readable" >&2
         return
     fi
     # 2nd argument is the target path for the video file.
     if [ -e "$2" ]; then
-        echo "$2 already exists: skipping"
+        echo "$2 already exists: skipping" >&2
         return
     fi
     # 3rd argument is the quality for the encoder to use:
@@ -33,11 +33,11 @@ function stills2vid {
     # 3 : ProRes422 (HQ)
     # See: http://transcoding.wordpress.com/2012/01/29/prores-ffmpeg/
     if [ "$3" -lt 0 ]; then
-        echo "Quality cannot be negative."
+        echo "Quality cannot be negative." >&2
         return
     fi
     if [ "$3" -gt 3 ]; then
-        echo "Quality cannot be above 3."
+        echo "Quality cannot be above 3." >&2
         return
     fi
     # Input looks okay.  Let's render.
@@ -46,24 +46,24 @@ function stills2vid {
     # Quit if there's an error, of if the user insisted by pressing control c.
     error=$?
     if [ "$error" -ne 0 ]; then
-        echo "fatal: FFMPEG halted"
+        echo "fatal: FFMPEG halted" >&2
         exit $error
     fi
 }
 
 if [ $# -lt 2 ]; then
-    echo "usage: $0 <input-dir> <output-dir>"
+    echo "usage: $0 <input-dir> <output-dir>" >&2
     exit 1
 fi
 
 # Where can we find the input?
 source="$1"
 if [ ! -d "$source" ]; then
-    echo "fatal: source is not a directory: $source"
+    echo "fatal: source is not a directory: $source" >&2
     exit 2
 fi
 if [ ! -r "$source" ]; then
-    echo "fatal: cannot read from source: $source"
+    echo "fatal: cannot read from source: $source" >&2
     exit 3
 fi
 echo "Source directory is: $source"
@@ -74,10 +74,10 @@ file=$(ls "$path" | head -n1)
 date=$(stat -f "%Sm" -t "%Y-%m-%d" "$path/$file")
 target="$2"
 if [ ! -d "$2" ]; then
-    echo "Target directory does not exist."
+    echo "Target directory does not exist." >&2
     mkdir -p "$2"
     if [ $? -ne 0 ]; then
-        echo "fatal: cannot create target directory: $2"
+        echo "fatal: cannot create target directory: $2" >&2
         exit 4
     fi
 fi
@@ -85,12 +85,12 @@ target="$target/$date"
 if [ ! -d "$2" ]; then
     mkdir -p "$2"
     if [ $? -ne 0 ]; then
-        echo "fatal: cannot create target directory: $2"
+        echo "fatal: cannot create target directory: $2" >&2
         exit 5
     fi
 fi
 if [ ! -w "$2" ]; then
-    echo "fatal: cannot write to target: $2"
+    echo "fatal: cannot write to target: $2" >&2
     exit 6
 fi
 echo "Target directory is: $2"
@@ -107,7 +107,7 @@ done
 # Concatenate the video files into one.
 final="$final/$date.mov"
 if [ -e "$final" ]; then
-    echo "fatal: $final already exists"
+    echo "fatal: $final already exists" >&2
     exit 7
 fi
 echo "Concatenating files into: $final"

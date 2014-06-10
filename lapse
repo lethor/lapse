@@ -8,8 +8,8 @@
 
 # Combine still photos into a video.
 function stills2vid {
-    if [ $# -lt 3 ]; then
-        echo "usage: $0 <input-dir> <output-dir> <quality>" >&2
+    if [ $# -lt 2 ]; then
+        echo "usage: $0 <input-dir> <output-dir> [<quality>]" >&2
         return
     fi
     # 1st argument is the source directory (e.g. path/to/DCIM) for the stills.
@@ -32,6 +32,10 @@ function stills2vid {
     # 2 : ProRes422 (Normal)
     # 3 : ProRes422 (HQ)
     # See: http://transcoding.wordpress.com/2012/01/29/prores-ffmpeg/
+    quality=2
+    if [ -n "$3" ]; then
+        quality="$3"
+    fi
     if [ "$3" -lt 0 ]; then
         echo "Quality cannot be negative." >&2
         return
@@ -97,10 +101,6 @@ echo "Target directory is: $2"
 
 # Render each directory of photos into a video.
 for dir in $(ls "$source"); do
-    quality=2
-    if [ -n "$3" ]; then
-        quality="$3"
-    fi
     stills2vid "$source/$dir" "$2/$dir.mov" "$quality"
 done
 
